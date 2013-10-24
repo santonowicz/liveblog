@@ -1,0 +1,93 @@
+<html>
+<head>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+</head>
+<body>
+<h2>Long Poll</h2>
+<div id="test-liveblog"></div>
+
+<script type="text/javascript">
+	var total=0;
+	function update(data) {
+		var curlen = data.posts.length;
+		var offset = curlen - total;
+		console.log(curlen+":"+offset);
+		if( offset == 0 ) {
+			console.log( 'no update' );
+			return;
+		}
+
+		if( offset == curlen ) {
+			console.log( 'setup' );
+			for( var i=0; i<curlen; i++ ) {
+				$( "#test-liveblog" ).append( genhtml( data.posts[i].type, data.posts[i] ) );
+			}
+			total=i;
+			return;
+		}
+
+		if( offset > 0 ) {
+			for( var i = offset-1; i >=0; i-- ) {
+				$( "#test-liveblog" ).prepend( genhtml( data.posts[i].type, data.posts[i] ) );
+			}
+			total = total + offset;
+			console.log( 'add content' );
+		}
+
+		console.log( 'unknown');
+		return;
+	}
+
+	function genhtml( type, data ) {
+		switch( type ) {
+			case 'text':
+				return "<div id=\""+data.id+"\">"+data.date+":"+data.body+"</div>";
+				break;
+
+			case 'quote':
+				break;
+
+			case 'link':
+				break;
+
+			case 'answer':
+				break;
+
+			case 'video':
+				break;
+
+			case 'audio':
+				break;
+
+			case 'chat':
+				break;
+
+			case 'photo':
+				return "<div id=\""+data.id+"\"><img src=\""+data.photos[0].alt_sizes[0].url+"\" /><div id=\""+data.id+"-caption\">"+data.caption+"</div></div>";
+				break;
+
+			default:
+				return;
+				break;
+		}
+
+
+	}
+
+	(function poll() {
+		$.ajax({
+			url: "http://sandbox:8080/liveblog/test.json",
+			type: "GET",
+			success: function(data) {
+				update(data);
+			},
+			error: function(jqXHR, textStatus, errorThrown){
+				console.log(textStatus);
+			},
+			complete: setTimeout(function() {poll()}, 30000),
+			timeout: 2000
+		});
+	})();
+</script>
+</body>
+</html>
